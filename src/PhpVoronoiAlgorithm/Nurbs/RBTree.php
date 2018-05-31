@@ -1,4 +1,7 @@
 <?php
+
+namespace PhpVoronoiAlgorithm\Nurbs;
+
 /**
  * Implémentation du Red-Black tree.
  * 

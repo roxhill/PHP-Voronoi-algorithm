@@ -1,4 +1,7 @@
-<?php 
+<?php
+
+namespace PhpVoronoiAlgorithm\Nurbs;
+
 class Beachsection
 {
 	public $site;

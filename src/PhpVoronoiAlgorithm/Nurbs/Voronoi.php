@@ -1,11 +1,6 @@
-<?php 
-require_once 'RBTree.php';
-require_once 'Cell.php';
-require_once 'Beachsection.php';
-require_once 'CircleEvent.php';
-require_once 'Edge.php';
-require_once 'Halfedge.php';
-require_once 'CircleEvent.php';
+<?php
+
+namespace PhpVoronoiAlgorithm\Nurbs;
 
 /**
  * Classe permettant de créer et de manipuler un diagramme de Voronoï, ou autrement
@@ -61,7 +56,13 @@ class Voronoi
 		$this->_circleEvents = new RBTree();
 		$this->_firstCircleEvent = null;
 	}
-	
+
+    /**
+     * @param $sites
+     * @param $bbox
+     * @return array
+     * @throws VoronoiException
+     */
 	public function compute ($sites, $bbox) 
 	{
 		$starttime = microtime(true);
@@ -116,17 +117,17 @@ class Voronoi
 				break;
 			}
 		}
-	
+
 		// wrapping-up:
 		//   connect dangling edges to bounding box
 		//   cut edges as per bounding box
 		//   discard edges completely outside bounding box
 		//   discard edges which are point-like
 		$this->clipEdges($bbox);
-	
+
 		//   add missing edges in order to close opened cells
 		$this->closeCells($bbox);
-	
+
 		// prepare return values
 		$result = array(
 			'sites' => $sites,
@@ -140,7 +141,7 @@ class Voronoi
 	
 	public function createEdge ($lSite, $rSite, $va, $vb) 
 	{
-		$edge = new Nurbs_Edge($lSite, $rSite);
+		$edge = new Edge($lSite, $rSite);
 		$this->_edges[] = $edge;
 		
 		if ($va) {
@@ -158,7 +159,7 @@ class Voronoi
 
 	public function createBorderEdge ($lSite, $va, $vb) 
 	{
-		$edge = new Nurbs_Edge($lSite, null);
+		$edge = new Edge($lSite, null);
 		$edge->va = $va;
 		$edge->vb = $vb;
 		$this->_edges[] = $edge;
@@ -280,13 +281,13 @@ class Voronoi
 		$this->_beachline->removeNode($beachsection); // remove from RB-tree
 		$this->_beachsectionJunkyard[] = $beachsection; // mark for reuse
 	}
-	
+
 	public function removeBeachsection ($beachsection) 
 	{
 		$circle = $beachsection->circleEvent;
 		$x = $circle->x;
 		$y = $circle->ycenter;
-		$vertex = new Nurbs_Point($x, $y);
+		$vertex = new Point($x, $y);
 		$previous = $beachsection->previous;
 		$next = $beachsection->next;
 		$disappearingTransitions = array($beachsection);
@@ -360,7 +361,11 @@ class Voronoi
 		$this->attachCircleEvent($lArc);
 		$this->attachCircleEvent($rArc);
 	}
-	
+
+    /**
+     * @param $site
+     * @throws VoronoiException
+     */
 	public function addBeachsection ($site) 
 	{
 		$x = $site->x;
@@ -490,7 +495,7 @@ class Voronoi
 		//	throw "Voronoi.addBeachsection(): What is this I don't even";
 		//	}
 		if (!$lArc && $rArc) {
-			throw new Voronoi_Exception(
+			throw new VoronoiException(
 				'It must be never appears.'
 			);
 		}
@@ -527,7 +532,7 @@ class Voronoi
 			$d=2*($bx*$cy-$by*$cx);
 			$hb=$bx*$bx+$by*$by;
 			$hc=$cx*$cx+$cy*$cy;
-			$vertex = new Nurbs_Point(($cy*$hb-$by*$hc)/$d+$ax, ($bx*$hc-$cx*$hb)/$d+$ay);
+			$vertex = new Point(($cy*$hb-$by*$hc)/$d+$ax, ($bx*$hc-$cx*$hb)/$d+$ay);
 	
 			// one transition disappear
 			$rArc->edge->setStartPoint($lSite, $rSite, $vertex);
@@ -713,24 +718,24 @@ class Voronoi
 			// downward
 			if ($lx > $rx) {
 				if (!$va) {
-					$va = new Nurbs_Point($fx, $yt);
+					$va = new Point($fx, $yt);
 				}
 				else if ($va->y >= $yb) {
 					return false;
 				}
 				
-				$vb = new Nurbs_Point($fx, $yb);
+				$vb = new Point($fx, $yb);
 			}
 			// upward
 			else {
 				if (!$va) {
-					$va = new Nurbs_Point($fx, $yb);
+					$va = new Point($fx, $yb);
 				}
 				else if ($va->y < $yt) {
 					return false;
 				}
 				
-				$vb = new Nurbs_Point($fx, $yt);
+				$vb = new Point($fx, $yt);
 			}
 		}
 		// closer to vertical than horizontal, connect start point to the
@@ -739,24 +744,24 @@ class Voronoi
 			// downward
 			if ($lx > $rx) {
 				if (!$va) {
-					$va = new Nurbs_Point(($yt-$fb)/$fm, $yt);
+					$va = new Point(($yt-$fb)/$fm, $yt);
 				}
 				else if ($va->y >= $yb) {
 					return false;
 				}
 				
-				$vb = new Nurbs_Point(($yb-$fb)/$fm, $yb);
+				$vb = new Point(($yb-$fb)/$fm, $yb);
 			}
 			// upward
 			else {
 				if (!$va) {
-					$va = new Nurbs_Point(($yb-$fb)/$fm, $yb);
+					$va = new Point(($yb-$fb)/$fm, $yb);
 				}
 				else if ($va->y < $yt) {
 					return false;
 				}
 				
-				$vb = new Nurbs_Point(($yt-$fb)/$fm, $yt);
+				$vb = new Point(($yt-$fb)/$fm, $yt);
 			}
 		}
 		// closer to horizontal than vertical, connect start point to the
@@ -765,24 +770,24 @@ class Voronoi
 			// rightward
 			if ($ly < $ry) {
 				if (!$va) {
-					$va = new Nurbs_Point($xl, $fm*$xl+$fb);
+					$va = new Point($xl, $fm*$xl+$fb);
 				}
 				else if ($va->x >= $xr) {
 					return false;
 				}
 				
-				$vb = new Nurbs_Point($xr, $fm*$xr+$fb);
+				$vb = new Point($xr, $fm*$xr+$fb);
 			}
 			// leftward
 			else {
 				if (!$va) {
-					$va = new Nurbs_Point($xr, $fm*$xr+$fb);
+					$va = new Point($xr, $fm*$xr+$fb);
 				}
 				else if ($va->x < $xl) {
 					return false;
 				}
 				
-				$vb = new Nurbs_Point($xl, $fm*$xl+$fb);
+				$vb = new Point($xl, $fm*$xl+$fb);
 			}
 		}
 		
@@ -914,7 +919,7 @@ class Voronoi
 		// than modifying the existing one, since the existing
 		// one is likely shared with at least another edge
 		if ($t0 > 0) {
-			$edge->va = new Nurbs_Point($ax+$t0*$dx, $ay+$t0*$dy);
+			$edge->va = new Point($ax+$t0*$dx, $ay+$t0*$dy);
 		}
 	
 		// if t1 < 1, vb needs to change
@@ -922,7 +927,7 @@ class Voronoi
 		// than modifying the existing one, since the existing
 		// one is likely shared with at least another edge
 		if ($t1 < 1) {
-			$edge->vb = new Nurbs_Point($ax+$t1*$dx, $ay+$t1*$dy);
+			$edge->vb = new Point($ax+$t1*$dx, $ay+$t1*$dy);
 		}
 	
 		return true;
@@ -962,7 +967,7 @@ class Voronoi
 		$yb = $bbox->yb;
 		$iCell = count($this->_cells);
 		$cells = $this->_cells;
-		
+
 		while ($iCell--) {
 			$cell = $cells[$iCell];
 			
@@ -970,23 +975,23 @@ class Voronoi
 			if (!$cell->prepare()) {
 				continue;
 			}
-			
+
 			// close open cells
 			// step 1: find first 'unclosed' point, if any.
 			// an 'unclosed' point will be the end point of a halfedge which
 			// does not match the start point of the following halfedge
 			$nHalfedges = count($cell->_halfedges);
-			
+
 			// special case: only one site, in which case, the viewport is the cell
 			// ...
 			// all other cases
 			$iLeft = 0;
-			
+
 			while ($iLeft < $nHalfedges) {
 				$iRight = ($iLeft+1) % $nHalfedges;
 				$endpoint = $cell->_halfedges[$iLeft]->getEndpoint();
 				$startpoint = $cell->_halfedges[$iRight]->getStartpoint();
-				
+
 				// if end point is not equal to start point, we need to add the missing
 				// halfedge(s) to close the cell
 				if ((abs($endpoint->x-$startpoint->x)>=self::EPSILON || abs($endpoint->y-$startpoint->y)>=self::EPSILON)) {
@@ -994,24 +999,24 @@ class Voronoi
 					// counterclockwise along the bounding box until it connects
 					// to next halfedge in the list
 					$va = $endpoint;
-					
+
 					// walk downward along left side
 					if ($this->equalWithEpsilon($endpoint->x,$xl) && $this->lessThanWithEpsilon($endpoint->y,$yb)) {
-						$vb = new Nurbs_Point($xl, $this->equalWithEpsilon($startpoint->x,$xl) ? $startpoint->y : $yb);
+						$vb = new Point($xl, $this->equalWithEpsilon($startpoint->x,$xl) ? $startpoint->y : $yb);
 					}
 					// walk rightward along bottom side
 					else if ($this->equalWithEpsilon($endpoint->y,$yb) && $this->lessThanWithEpsilon($endpoint->x,$xr)) {
-						$vb = new Nurbs_Point($this->equalWithEpsilon($startpoint->y,$yb) ? $startpoint->x : $xr, $yb);
+						$vb = new Point($this->equalWithEpsilon($startpoint->y,$yb) ? $startpoint->x : $xr, $yb);
 					}
 					// walk upward along right side
 					else if ($this->equalWithEpsilon($endpoint->x,$xr) && $this->greaterThanWithEpsilon($endpoint->y,$yt)) {
-						$vb = new Nurbs_Point($xr, $this->equalWithEpsilon($startpoint->x,$xr) ? $startpoint->y : $yt);
+						$vb = new Point($xr, $this->equalWithEpsilon($startpoint->x,$xr) ? $startpoint->y : $yt);
 					}
 					// walk leftward along top side
 					else if ($this->equalWithEpsilon($endpoint->y,$yt) && $this->greaterThanWithEpsilon($endpoint->x,$xl)) {
-						$vb = new Nurbs_Point($this->equalWithEpsilon($startpoint->y,$yt) ? $startpoint->x : $xl, $yt);
+						$vb = new Point($this->equalWithEpsilon($startpoint->y,$yt) ? $startpoint->x : $xl, $yt);
 					}
-					
+
 					if ($vb) {
 					
 						$edge = $this->createBorderEdge($cell->_site, $va, $vb);
@@ -1021,7 +1026,7 @@ class Voronoi
 						$nHalfedges = count($cell->_halfedges);
 					}
 				}
-				
+
 				$iLeft++;
 			}
 		}
@@ -1033,6 +1038,3 @@ class Voronoi
 	public function lessThanWithEpsilon ($a,$b){return $b-$a>self::EPSILON;}
 	public function lessThanOrEqualWithEpsilon ($a,$b){return $a-$b<self::EPSILON;}
 }
-
-class Voronoi_Exception extends Exception
-{}

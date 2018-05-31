@@ -1,9 +1,14 @@
 <?php
+
+namespace PhpVoronoiAlgorithm\Nurbs;
+
+use PhpVoronoiAlgorithm\Nurbs\Surface\SurfaceAbstract;
+
 /**
  * Cette classe définie un nurbs, à savoir une surface en 3 dimentions.
  * 
  */ 
-class Nurbs_Nurbs extends Nurbs_Surface_Abstract
+class Nurbs extends SurfaceAbstract
 {
 	/**
 	 * Méthodes de calcul du nurbs.
@@ -30,7 +35,7 @@ class Nurbs_Nurbs extends Nurbs_Surface_Abstract
 	 * Créé un nurbs depuis un tableau de points.
 	 * 
 	 * @param array $points
-	 * @return Nurbs_Surface_Abstract
+	 * @return SurfaceAbstract
 	 */
 	public static function fromPoints (array $points)
 	{
@@ -57,7 +62,7 @@ class Nurbs_Nurbs extends Nurbs_Surface_Abstract
 	 * @param integer $x
 	 * @param integer $y
 	 * @param double  $radius
-	 * @return Nurbs_Point
+	 * @return Point
 	 */
 	public function getPoint ($x, $y, $radius = 1)
 	{
@@ -70,15 +75,15 @@ class Nurbs_Nurbs extends Nurbs_Surface_Abstract
 			break;
 		}
 	}
-	
-	/**
-	 * Calcul un point grâce à la méthode de Delaunay, à savoir: on divise
-	 * la surface en autres surfaces triangulaires plus simples à calculer.
-	 * 
-	 * @param integer $x
-	 * @param integer $y
-	 * @return Nurbs_Point
-	 */
+
+    /**
+     * Calcul un point grâce à la méthode de Delaunay, à savoir: on divise
+     * la surface en autres surfaces triangulaires plus simples à calculer.
+     *
+     * @param $x
+     * @param $y
+     * @throws NurbsException
+     */
 	public function getDelaunayPoint ($x, $y)
 	{
 		// On récupère les surfaces de Delaunay
@@ -86,28 +91,26 @@ class Nurbs_Nurbs extends Nurbs_Surface_Abstract
 		
 		var_dump($triangles);
 	}
-	
-	/**
-	 * Retourne les triangles de Delaunay de la surface, à savoir des
-	 * Nurbs de 3 points.
-	 * 
-	 * @return array of Nurbs_Nurbs
-	 */
+
+    /**
+     * Retourne les triangles de Delaunay de la surface, à savoir des
+     * Nurbs de 3 points.
+     *
+     * @return array
+     * @throws NurbsException
+     */
 	public function getDelaunaySurfaces ()
 	{
 		// On vérifie qu'il y a assez de points
 		if (count($this->_points) < 3) {
-			throw new Nurbs_Nurbs_Exception(
+			throw new NurbsException(
 				'Il y a moins de 3 points: impossible d\'utiliser Delaunay'
 			);
 		}
 		
 		// On utilise la librairie Delaunay pour récupère les triangles
-		$triangles = Nurbs_Delaunay::triangulate($this->_points);
+		$triangles = Delaunay::triangulate($this->_points);
 		
 		return $triangles;
 	}
 }
-
-class Nurbs_Nurbs_Exception extends Exception
-{}

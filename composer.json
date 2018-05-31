@@ -1,0 +1,15 @@
+{
+  "name": "php-voronoi-algorithm",
+  "version": "0.1",
+  "require": {
+    "php": ">=7.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^6.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "PhpVoronoiAlgorithm\\Nurbs\\": "src/PhpVoronoiAlgorithm/Nurbs"
+    }
+  }
+}
