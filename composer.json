@@ -1,5 +1,5 @@
 {
-  "name": "php-voronoi-algorithm",
+  "name": "roxhill/php-voronoi-algorithm",
   "version": "0.1",
   "require": {
     "php": ">=7.1"
